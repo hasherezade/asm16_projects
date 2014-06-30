@@ -3,3 +3,5 @@ author: hasherezade, 2002-2003
 
 compile with: tasm, mirror: http://hasherezade.net/tools/TASM.zip
 
+Description and more info:
+http://hshrzd.wordpress.com/mycode/

@@ -1,7 +1,12 @@
 ; the code published under Creative Commons (CC-BY-NC) license
 ; author: hasherezade (hshrzd.wordpress.com)
 ; contact: hasherezade@op.pl
-; compile with tasm
+
+; compile with tasm:
+; tasm <name>.asm
+; tlink <name>.obj
+
+; works on: DoS, Windows <= XP
 
 .model tiny
 .stack 100h
@@ -63,16 +68,22 @@ stan_pola dw 10 dup(0)
 najwiekszy_stan db 0
 maszyna db 0
 gdzie_postawic db 0 ;puste pole z największym stanem
-wygkol db "wygraly kolka!$"
-wygkrzyz db "wygraly krzyzyki!$"
-tytul db "KOLKO I KRZYZYK$"
-podpis db "AndziaD$"
 
-wybierz1 db "1-czlowiek vs komp$"
-wybierz2 db "2-czlowiek vs czlowiek$"
-remis db "remis!$"
+wygkol db "Circles won!$"
+wygkrzyz db "Crosses won!$"
+remis db "Draw!$"
+
+tytul db "Tic-Tac-Toe$"
+podpis db "[hasherezade, 2003]$"
+
+wybierz1 db "1 - human vs computer$"
+wybierz2 db "2 - human vs human$"
+wybierz3 db "3 - quit$"
+
 .code
+
 start:
+
 assume ds:@data
 mov ax,@data
 mov ds,ax
@@ -82,6 +93,8 @@ mov es,ax
 mov ax,0013h
 int 10h
 call rysuj_menu
+cmp maszyna,0
+je koniec
 call rysuj_pole
 call myszka
 mov ax,0003h
@@ -136,12 +149,13 @@ int 21h
 ;ustawiam wskaznik
 mov ah,2
 mov dh,6
-mov dl,17
+mov dl,10
 mov bh,0
 int 10h
 mov dx,offset podpis
 mov ah,9
 int 21h
+
 ;ustawiam wskaznik
 mov ah,2
 mov dh,9
@@ -151,6 +165,7 @@ int 10h
 mov dx,offset wybierz1
 mov ah,9
 int 21h
+
 ;ustawiam wskaznik
 mov ah,2
 mov dh,10
@@ -160,22 +175,43 @@ int 10h
 mov dx,offset wybierz2
 mov ah,9
 int 21h
+
+;ustawiam wskaznik
+mov ah,2
+mov dh,11
+mov dl,10
+mov bh,0
+int 10h
+mov dx,offset wybierz3
+mov ah,9
+int 21h
+
 entliczek:
 mov dl,0ffh
 mov ah,6
 int 21h
+
 cmp al,'1'
 je maszyna_tak
+
 cmp al,'2'
 je maszyna_nie
+
+cmp al, '3'
+je koncz_menu
+
 jmp entliczek
+
 maszyna_tak:
 mov byte ptr maszyna,1
 jmp koncz_menu
+
 maszyna_nie:
 mov byte ptr maszyna,2
+
 koncz_menu:
 call zamaluj_ekran
+
 mov ah,2
 mov dh,0
 mov dl,0
@@ -943,3 +979,4 @@ pop ax
 ret
 
 END start
+

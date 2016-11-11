@@ -1,7 +1,7 @@
 ; the code published under Creative Commons (CC-BY-NC) license
 ; author: hasherezade (hshrzd.wordpress.com)
-; contact: hasherezade@op.pl
-; compile with tasm
+; contact: hasherezade@gmail.com
+; compile with tasm (16-bit)
 
 .model tiny
 .stack 100h
@@ -15,46 +15,61 @@ main2 db 'by: hasherezade, 2004$'
 main3 db '[PRESS SPACE]$'
 
 napis db "ASCrIIble$"
-menu db 'Wyjscie | Otworz | zapiSz | Czysc | wYtnij | coFnij | Zamien | Pedzel$'
-menu1 db ' | Tlo $'
+menu db ' Quit | Open | Save | Clear | cUt | Replace | unDo | Pen $'
+menu1 db ' | Background $'
+
+cmd_quit db 'q'
+cmd_open db 'o'
+cmd_save db 's'
+cmd_clear db 'c'
+cmd_cut db 'u'
+cmd_undo db 'd'
+cmd_replace db 'r'
+cmd_pen db 'p'
+cmd_background db 'b'
+
+ans_yes db 'y'
+ans_no db 'n'
+
 pendzel db '*'
 tlo db ' '
-zapisztx db 'ZAPISZ$'
-otworztx db 'OTWORZ$'
-zmientx db 'ZMIEN$'
-zamien_natx db 'ZAMIEN$'
-uwagatx db 'UWAGA!$'
-wytnijtxt db 'WYTNIJ$'
+
+zapisztx db 'SAVE$'
+otworztx db 'OPEN$'
+zmientx db 'CHANGE$'
+zamien_natx db 'REPLACE$'
+uwagatx db 'WARNING!$'
+wytnijtxt db 'CUT$'
 wcisniety db 0
 opcje_flag db 0
 mycha_flag db 0
-podaj_nazwe db 'podaj nazwe pliku .txt:$'
-nie_ma_pliku db 'Plik o podanej nazwie nie istnieje!$'
-nie_ma_pliku2 db 'Wprowadzic nazwe ponownie?$'
-plik_istnieje db 'Plik o podanej nazwie juz istnieje!$'
-plik_istnieje2 db 'Czy chcesz nadpisac?$'
-nie_podano db 'Nie podales nazwy pliku!$'
-nie_zapisano db 'Nie zapisano pliku!$'
-nie_zapisano2 db 'Sprawdz przyczyne i sprobuj ponownie!$'
-tylko_odczyt db 'Zapis do tego pliku jest niemozliwy:$'
-tylko_odczyt2 db 'plik tylko do odczytu!$'
-zmien_pendzel db 'wpisz nowa wartosc pendzla:$'
-zmien_tlo db 'wpisz nowa wartosc tla:$'
-zamien_na db 'Zamien znak na znak:$'
-znaleziono1 db 'podglad zawiera$'
-znaleziono2 db 'plik$'
-nie_znaleziono1 db 'W folderze nie ma plikow .txt!$'
-wyt_opcje1 db 'wybierz opcje:$'
-wyt_opcje2 db '[ ]przezroczyste tlo$'
-wyt_opcje3 db '[ ]kopiuj$'
-wyt_opcje4 db '[ ]odbicie lustrzane$'
-wyt_opcje5 db '[ ]kasuj zaznaczone$'
+podaj_nazwe db 'Input file name .txt:$'
+nie_ma_pliku db 'File with this name do not exits!$'
+nie_ma_pliku2 db 'Try again?$'
+plik_istnieje db 'File with this name already exist!$'
+plik_istnieje2 db 'Do you want to save the file?$'
+nie_podano db 'You supplied no filename!$'
+nie_zapisano db 'Could not save the file!$'
+nie_zapisano2 db 'Check the reason and retry!$'
+tylko_odczyt db 'Saving to this file was not possible:$'
+tylko_odczyt2 db 'read only file!$'
+zmien_pendzel db 'New value of the Pen:$'
+zmien_tlo db 'New value of the background:$'
+zamien_na db 'Replace char by char:$'
+znaleziono1 db 'the preview contains$'
+znaleziono2 db 'file$'
+nie_znaleziono1 db 'No files with ext .txt!$'
+wyt_opcje1 db 'Choose the option:$'
+wyt_opcje2 db '[ ] transparent background$'
+wyt_opcje3 db '[ ] copy$'
+wyt_opcje4 db '[ ] mirror$'
+wyt_opcje5 db '[ ] delete selection$'
 pwyt_x dw 0
 pwyt_x2 dw 0
 pwyt_y dw 0
 pwyt_y2 dw 0
-button_tak db '[TAK]$'
-button_nie db '[NIE]$'
+button_tak db '[YES]$'
+button_nie db '[NO!]$'
 button_enter db '[ENTER]$'
 handle dw ?
 znak db ?
@@ -157,7 +172,7 @@ push cx
 push dx
 lea si,wytnijtxt
 call naglowek
-mov cx,30
+mov cx,25
 mov dx,8
 call wylicz_punkt
 lea si,wyt_opcje1
@@ -234,7 +249,7 @@ mov cx,30
 mov dx,12
 call wylicz_punkt
 inc di
-mov cx,21
+mov cx,2
 call tlo_pod_linia
 inc di
 mov byte ptr es:[di],' '
@@ -1485,11 +1500,11 @@ call wczytuj_napis
 mov ah,8
 petla_rs_klawiature:
 int 21h
-cmp al,'t'
+cmp al, ans_yes
 jne rs_klawiature_d1
 jmp rs_klawiature_koniec
 rs_klawiature_d1:
-cmp al,'n'
+cmp al, ans_no
 jne rs_klawiature_d2
 jmp rs_klawiature_koniec
 rs_klawiature_d2:
@@ -1737,7 +1752,7 @@ shr cx,3
 shr dx,3
 
 call wylicz_punkt
-jmp kontrola_klawiatury
+jmp main_command_loop
 
 kontynuuj:
 
@@ -1765,18 +1780,18 @@ call sprzataj_ekran
 mov ah,4ch
 int 21h
 
-kontrola_klawiatury:
+main_command_loop:
 mov ah,06h
 mov dl,0ffh
 int 21h
-cmp al,'s'
+cmp al, cmd_save
 jne nie_zapisuj
 call modul_zapisz
 jmp kontynuuj
 nie_zapisuj:
-cmp al,'w'
+cmp al, cmd_quit
 je koniec
-cmp al,'c'
+cmp al, cmd_clear
 jne nie_wyczysc
 mov ax,2
 int 33h
@@ -1787,22 +1802,22 @@ mov ax,1
 int 33h
 jmp kontynuuj
 nie_wyczysc:
-cmp al,'p'
+cmp al, cmd_pen
 jne nie_zmienp
 call modul_zmienp
 jmp kontynuuj
 nie_zmienp:
-cmp al,'t'
+cmp al, cmd_background
 jne nie_zmient
 call modul_zmient
 jmp kontynuuj
 nie_zmient:
-cmp al,'o'
+cmp al, cmd_open
 jne nie_otwieraj
 call modul_otworz
 jmp kontynuuj
 nie_otwieraj:
-cmp al,'f'
+cmp al, cmd_undo
 jne nie_cofaj
 mov ax,2
 int 33h
@@ -1812,12 +1827,12 @@ int 33h
 call zgas_cofnij
 jmp kontynuuj
 nie_cofaj:
-cmp al,'z'
+cmp al, cmd_replace
 jne nie_zamieniaj_znakow
 call modul_znz
 jmp kontynuuj
 nie_zamieniaj_znakow:
-cmp al,'y'
+cmp al, cmd_cut
 jne nie_wycinaj
 call modul_wycinaj
 jmp kontynuuj
@@ -2563,7 +2578,7 @@ call pokaz_mysz
 jnc motworz_d1
 call ukryj_mysz
 call ramka_nie_ma_pliku
-cmp al,'t'
+cmp al, ans_yes
 je petla_otworz
 call ukryj_mysz
 call odtwarzaj_z_bufora
@@ -2600,16 +2615,16 @@ call wczytuj_napis
 mov di,162
 lea si,menu
 call wczytuj_napis
-mov di,302
+mov di,280
 lea dx,pendzel
 mov al,byte ptr pendzel
 mov byte ptr es:[di],al
 mov al,10111110b
 mov byte ptr es:[di+1],al
-mov di,304
+mov di,284
 lea si,menu1
 call wczytuj_napis
-mov di,316
+mov di,314
 lea dx,tlo
 mov al,byte ptr tlo
 mov byte ptr es:[di],al

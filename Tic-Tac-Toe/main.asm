@@ -67,7 +67,7 @@ cross_and_circle_flag db 0
 field_flag db 0
 fields db 10 dup(0)
 lines db 9 dup(0)
-field_state dw 10 dup(0)
+fields_states dw 10 dup(0)
 the_biggest_state db 0
 machine db 0
 where_to_put db 0 ; an empty field with the biggest state
@@ -580,7 +580,7 @@ push bx
 push ax
 mov byte ptr where_to_put,0
 mov byte ptr the_biggest_state,0
-mov ax,offset field_state
+mov ax,offset fields_states
 mov bx,offset lines
 mov si,bx
 mov di,ax
@@ -661,7 +661,7 @@ push cx
 mov ax,offset fields
 mov si,ax
 add si,dx
-mov ax,offset field_state
+mov ax,offset fields_states
 mov di,ax
 add di,dx
 mov cl,byte ptr ds:[di]

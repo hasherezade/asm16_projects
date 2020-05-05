@@ -1,3 +1,7 @@
+﻿; compile with tasm:
+; tasm <name>.asm
+; tlink <name>.obj
+
 .model tiny
 .stack 100h
 .data
@@ -7,8 +11,8 @@ komunikat_ramka1 db 'Master Mind Game                                   ','$'
 komunikat_ramka2 db 'by hAsh, 2002                               ','$'
 
 licznik db 0
-komunikat_zgadles db 'Gratulacje, zgadles!',10,13,'$'
-komunikat_znak db 'Ciag ma zawierac 4 znaki z zakresu od a do g',10,13,'$'
+komunikat_zgadles db 'Congrats, you guessed it!',10,13,'$'
+komunikat_znak db 'Guess the string of 4 characters: from a to g,10,13,'$'
 zlapany db 4 dup(0),'$'
 pobrany db 5 dup(0)
 bufor db 5,0,4 dup('$')
